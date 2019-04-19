@@ -2,24 +2,8 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Simulation</title>  
+    <title>Co-Evolution</title>  
   </head>
-  <h1>A Quick Explanation</h1>
-  <p>Each organism (those little spiked things) is made up of different body parts
-    of varying lengths. Each yellow spike is an eye, it tells the organism if a wall
-    or another organism is in its line of sight, as well as the distance to the wall/organism.
-    The blue spike is the "mouth" of the organism, it allows the organism to eat other
-    organisms, increasing its fitness. The red spike is the brain, if this is eaten,
-    the organism will perish and be removed from the world, in will have its fitness lowered.
-    If the organisms touch the walls they will also perish and have their fitness lowered.
-    After a certain amount of time has passed, or all the organisms are dead, a new generation 
-    of organisms will be produced based on how fit organisms in the previous generation were -
-    organisms with higher fitness are more likely to reproduce. Each organism has a CNN as its brain
-    that takes in the inputs from the eyes and outputs which direction the organism will move in.
-    These will slowly mutate over time, and in theory useful mutations should stick. In the begining the organisms
-    will fly randomly in all directions and smash into the walls. Over time, however, they should start to 
-    avoid walls and strategically try and hit other organism's brains with their mouths. Enjoy!
-  </p>
   <div id="gen">Generation 0</div>
   <body>
     <script src="matter.js" type="text/javascript"></script>

@@ -16,7 +16,7 @@ const render = Render.create({
   engine: engine,
   options: {
     width: Math.min(document.documentElement.clientWidth, 1000),
-    height: Math.min(document.documentElement.clientHeight, 600),
+    height: Math.min(document.documentElement.clientHeight, 700),
     //showAxes: true,
     wireframes: false,
     showCollisions: true,
@@ -69,9 +69,9 @@ function specialSigmoid(n) {
 }
 
 
-// this is useful for scaling outputs of NN back up to meaningful values
-function inverseSigmoid(n) {
-  return (n === 0 || n === 1) ? 0 : Math.log(n / (1 - n));
+// used to change the size of the mutations made over time
+function degeneration(n) {
+  return Math.pow(Math.E, -Math.pow(-(n/100),2));
 }
 
 
@@ -101,18 +101,24 @@ function shuffle(array) {
   return array;
 }
 
+// https://stackoverflow.com/questions/135448
+function has(object, key) {
+  return object ? hasOwnProperty.call(object, key) : false;
+}
+
 
 // this is a class which controls and keeps track of each organism's body,
 // fitness, and movements.
 class Organism {
 
-  constructor(body) {
+  constructor(body, timeAdded) {
     this.body = body;
     this.fitness = 0;
     this.eyeIndex1 = -1;
     this.eyeIndex2 = -1;
     this.mouthIndex = 0;
     this.isDead = false;
+    this.timeAdded = timeAdded;
     for (let i = 0; i < this.body.parts.length; ++i) {
       if (body.parts[i].label === eye && this.eyeIndex1 === -1) {
         this.eyeIndex1 = i;
@@ -122,7 +128,7 @@ class Organism {
         this.mouthIndex = i;
       }
     }
-    this.brain = neataptic.architect.Perceptron(23,30,30,3);
+    this.brain = neataptic.architect.Perceptron(23,30,20,10,3);
     for (let j = 0; j < this.brain.nodes.length; ++j) {
       this.brain.nodes[j].squash = neataptic.methods.activation.TANH;
     }
@@ -153,7 +159,7 @@ class Organism {
   }
 
   hitWall() {
-    this.fitness -= 10;
+    this.fitness -=30;
   }
 
   getRaycast(eyeIndex) {
@@ -336,9 +342,12 @@ class Population {
     
     let bestOrganism = undefined;
     for (let i = 0; i < tournamentSize; ++i) {
-      let index = this.popSize;
-      while (index === this.popSize) {
-        index = Math.floor(getRandomArbitrary(0, this.popSize));
+      let index = myPopList.length;
+      if (index === 0) {
+        return undefined;
+      }
+      while (index === myPopList.length) {
+        index = Math.floor(getRandomArbitrary(0, myPopList.length));
       }
       const randomOrganism = myPopList[index];
       if (bestOrganism === undefined || (randomOrganism.getFitness() > bestOrganism.getFitness())) {
@@ -378,7 +387,7 @@ class Population {
   getCoordinates() {
     let coords = []
     for (let x = 150; x < 950; x+= 100) {
-      for (let y = 150; y < 550; y += 100) {
+      for (let y = 150; y < 650; y += 100) {
         coords.push({'x': x, 'y': y});
       }
     }
@@ -434,6 +443,36 @@ class Population {
     return body;
   }
 
+  replaceOrganism(idOfReplaced) {
+    delete this.pop[idOfReplaced];
+    let myPopList = [];
+    for (var key in this.pop) {
+      if (!this.pop[key].isDead) {
+        myPopList.push(this.pop[key]);
+      }
+    }
+    const replacement = this.tournamentSelection(myPopList);
+    let coords = this.getCoordinates();
+    coords = shuffle(coords);
+    const bodyCoords = coords.pop();
+    const newBody = this.getNBody(this.numAppendages, bodyCoords.x, bodyCoords.y);
+    let organism = new Organism(newBody, counter);
+    this.pop[newBody.id] = organism;
+    const newBrain = replacement.brain;
+
+    const weightMutations = Math.floor(getRandomArbitrary(0, 40));
+    const biasMutations = Math.floor(getRandomArbitrary(0, 2));
+    for (let k = 0; k < weightMutations; ++k) {
+      newBrain.mutate(neataptic.methods.mutation.MOD_WEIGHT);
+    }
+    for (let k = 0; k < biasMutations; ++k) {
+      newBrain.mutate(neataptic.methods.mutation.MOD_BIAS);
+    }
+    
+    this.pop[newBody.id].setBrainAndBody(newBrain);
+    World.add(world, newBody);
+  }
+
   generatePop() {
     let firstGen = false;
     let newPop = undefined;
@@ -449,7 +488,7 @@ class Population {
       coords = shuffle(coords);
       const bodyCoords = coords.pop();
       const body = this.getNBody(this.numAppendages, bodyCoords.x, bodyCoords.y);
-      let organism = new Organism(body);
+      let organism = new Organism(body, counter);
       this.pop[body.id] = organism;
       if (!firstGen && newPop[0]) {
         const newBrain = newPop[j].brain;
@@ -486,7 +525,7 @@ class Population {
       bodies.push(this.pop[key].body);
     }
 
-    const ground = Bodies.rectangle(400, 600, 1200, 20, { isStatic: true });
+    const ground = Bodies.rectangle(400, 700, 1200, 20, { isStatic: true });
     ground.label = wall;
     const ceiling = Bodies.rectangle(400, 0, 1200, 20, { isStatic: true });
     ceiling.label = wall;
@@ -511,15 +550,12 @@ class Population {
 
 Events.on(engine, 'collisionStart', function(event) {
   var pairs = event.pairs;
-
   for (var i = 0, j = pairs.length; i != j; ++i) {
       var pair = pairs[i];
-      //console.log('??');
-      // if (myPop.pop[pair.bodyA.parent.id] === undefined ||
-      //     myPop.pop[pair.bodyB.parent.id] === undefined) {
-      //      continue;
-      // }
-      //console.log('??');
+      if ((!has(myPop.pop, pair.bodyA.parent.id) && pair.bodyA.label != wall) ||
+          (!has(myPop.pop, pair.bodyB.parent.id) && pair.bodyB.label != wall)) {
+        continue;
+      }
       if (pair.bodyA.label === mouth && pair.bodyB.label === regular) {
         pair.bodyB.label = eaten;
         pair.bodyB.render.fillStyle = '#D3D3D3';
@@ -534,30 +570,40 @@ Events.on(engine, 'collisionStart', function(event) {
         World.remove(world, pair.bodyB.parent);
         myPop.pop[pair.bodyB.parent.id].isDead = true;
         myPop.pop[pair.bodyB.parent.id].getEaten();
-        myPop.pop[pair.bodyB.parent.id].fitness += (counter % 1000) / 100;
+        //myPop.pop[pair.bodyB.parent.id].fitness += (counter - myPop.pop[pair.bodyB.parent.id].timeAdded) / 100;
         myPop.pop[pair.bodyA.parent.id].eatBrain();
+        myPop.replaceOrganism(pair.bodyB.parent.id);
+        eatingDeaths += 1;
       } else if (pair.bodyB.label === mouth && pair.bodyA.label === brain) {
         World.remove(world, pair.bodyA.parent);
         myPop.pop[pair.bodyA.parent.id].isDead = true;
         myPop.pop[pair.bodyA.parent.id].getEaten();
-        myPop.pop[pair.bodyA.parent.id].fitness += (counter % 1000) / 100;
+        //myPop.pop[pair.bodyA.parent.id].fitness += (counter - myPop.pop[pair.bodyA.parent.id].timeAdded) / 100;
         myPop.pop[pair.bodyB.parent.id].eatBrain();
+        myPop.replaceOrganism(pair.bodyA.parent.id);
+        eatingDeaths += 1;
       } else if (pair.bodyB.label === wall) {
         World.remove(world, pair.bodyA.parent);
         myPop.pop[pair.bodyA.parent.id].isDead = true;
-        myPop.pop[pair.bodyA.parent.id].fitness += (counter % 1000) / 100;
+        //myPop.pop[pair.bodyA.parent.id].fitness += (counter - myPop.pop[pair.bodyA.parent.id].timeAdded) / 100;
         myPop.pop[pair.bodyA.parent.id].hitWall();
+        myPop.replaceOrganism(pair.bodyA.parent.id);
+        wallDeaths += 1;
       } else if (pair.bodyA.label === wall) {
         World.remove(world, pair.bodyB.parent);
         myPop.pop[pair.bodyB.parent.id].isDead = true;
-        myPop.pop[pair.bodyB.parent.id].fitness += (counter % 1000) / 100;
+        //myPop.pop[pair.bodyB.parent.id].fitness += (counter - myPop.pop[pair.bodyB.parent.id].timeAdded) / 100;
         myPop.pop[pair.bodyB.parent.id].hitWall();
+        myPop.replaceOrganism(pair.bodyB.parent.id);
+        wallDeaths += 1;
       }
   }
 });
 
 
 let counter = 0;
+let wallDeaths = 0;
+let eatingDeaths = 0;
 Events.on(engine, 'beforeUpdate', function() {
   if (myPop.pop === undefined) return;
   let popAllDead = false;
@@ -568,28 +614,29 @@ Events.on(engine, 'beforeUpdate', function() {
         popAllDead = false;
         var theOrganism = myPop.pop[key];
         theOrganism.nextMovement();
+        myPop.pop[key].fitness += .1
       }
     }
   }
   if (counter % 1000 === 0 || popAllDead) {
-    counter = Math.ceil(counter / 1000) * 1000;
-    try {
-      document.getElementById("gen").innerHTML = "Generation: {0}".format(counter / 1000);
-    }
-    catch(error) {
-      console.error(error);
-      // expected output: ReferenceError: nonExistentFunction is not defined
-      // Note - error messages will vary depending on browser
-    }
-    myPop.generatePop();
-    myPop.addGenerationToWorld(); 
+    document.getElementById("gen").innerHTML = "Generation: {0}".format(counter / 1000);
+    console.log("Wall deaths: {0}\nEating deaths: {1}\nTotal deaths: {2}".format(wallDeaths / (wallDeaths + eatingDeaths),
+    eatingDeaths / (wallDeaths + eatingDeaths), wallDeaths + eatingDeaths));
+    eatingDeaths = 0;
+    wallDeaths = 0;
+    const degen = degeneration(counter / 1000) + .1;
+    console.log(degen);
+    neataptic.methods.mutation.MOD_WEIGHT.min = -degen;
+    neataptic.methods.mutation.MOD_WEIGHT.max = degen;
+    neataptic.methods.mutation.MOD_BIAS.min = -degen;
+    neataptic.methods.mutation.MOD_BIAS.max = degen;
   }
   counter += 1;
 });
 
-let myPop = new Population(20, 4);
-//myPop.generatePop();
-//myPop.addGeneration();
+let myPop = new Population(15, 4);
+myPop.generatePop();
+myPop.addGenerationToWorld();
 
 
 

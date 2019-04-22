@@ -2,18 +2,47 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Co-Evolution</title>  
+    <link href="style.css" rel="stylesheet" />
   </head>
-  <div id="gen">Generation 0</div>
   <body>
+    <button id="simulationRunner">Reset Simulation</button>
+    <div class="row">
+        <div class="col">
+            Number of Appendages on Organism
+            </br>
+            4 <input type="range" step="1" min="4" max="15" id="numAppendagesSlider" value="6" name="appen"> 15<br>
+            <div id="appenValue">Current value: 6</div>
+        </div>
+        <div class="col">
+          Population Size
+          </br>
+          2 <input type="range" step="1" min="2" max="30" id="popSizeSlider" value="10"> 30<br>
+          <div id="popSize">Current value: 10</div>
+        </div>
+        <div class="col">
+          Brain Mutation Rate
+          </br>
+          <input type="text" id="brainMutationRate" value=".05"><br>
+          Must be between [0-1]
+        </div>
+        <div class="col">
+            Body Mutation Rate
+            </br>
+            <input type="text" id="bodyMutationRate" value=".05"><br>
+            Must be between [0-1]
+          </div>
+    </div>
+    <br><br>
+    <div id="gen">Generation 0</div>
     <script src="matter.js" type="text/javascript"></script>
     <script src="decomp.js" type="text/javascript"></script>
     <script src="raycast_es6.js" type="text/javascript"></script>
     <script src="neataptic.js" type="text/javascript"></script>
     <script src="synaptic.js" type="text/javascript"></script>
     <script src="coevolution.js" type="text/javascript"></script>
+    
   </body>
-  <br/><br/><br/>
-  <a href="/" target="_blank" rel="noopener">Back to Main</a>
+  <br><br>
+  
 </html>
 

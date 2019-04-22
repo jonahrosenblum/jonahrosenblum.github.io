@@ -1,9 +1,4 @@
 function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRate) {
-  // if the reset button is pressed, remove the old simulation
-  // const canvas = document.getElementsByTagName("canvas")[0];
-  // if (canvas) {
-  //   canvas.parentNode.removeChild(canvas);
-  // }
   
   const Engine = Matter.Engine;
   const Render = Matter.Render;
@@ -24,15 +19,10 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
     options: {
       width: Math.min(document.documentElement.clientWidth, 1000),
       height: Math.min(document.documentElement.clientHeight, 700),
-      //showAxes: true,
       wireframes: false,
       showCollisions: true,
-      //showConvexHulls: true
     }
   });
-
-  // World.add(world, mouseConstraint);
-  // render.mouse = mouse;
 
   Matter.Render.run(render);
   const runner = Runner.create();
@@ -216,14 +206,7 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
       }
       const xMultiplier = Math.cos(this.body.parts[eyeIndex].angle + this.body.angle);
       const yMultiplier = Math.sin(this.body.parts[eyeIndex].angle + this.body.angle);
-    
-      // const context = render.context;
-      // context.beginPath();
-      // context.moveTo(this.body.parts[eyeIndex].position.x, this.body.parts[eyeIndex].position.y);
-      // context.lineTo(xMultiplier * 1600, yMultiplier*1600);
-      // context.lineWidth = 0.5;
-      // context.strokeStyle = '#fff';
-      // context.stroke();
+      
       const array = raycast(bodies, this.body.parts[eyeIndex].position, 
                             { x: xMultiplier * 1600, 
                               y: yMultiplier * 1600
@@ -243,7 +226,6 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
       const eyeToMouthAngle1 = this.body.parts[this.mouthIndex].angle - this.body.parts[this.eyeIndex1].angle
       const eyeAngle2 = this.body.parts[this.eyeIndex2].angle - this.body.angle;
       const eyeToMouthAngle2 = this.body.parts[this.mouthIndex].angle - this.body.parts[this.eyeIndex2].angle
-      // const numInputs = 23;
       // give inputs for the brain to make a decision about what the next move
       // will be - we will give it the current velocity, current angle relative
       // to what it sees, the angle between the eye and mouth, the distance to 
@@ -340,7 +322,7 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
       }
 
       const brainInputs = this.getBrainInputs(bodies1, bodies2);
-      //onsole.log(brainInputs);
+
       if (brainInputs === undefined || brainInputs.length !== 24) return;
       
       const brainOutputs = this.brain.activate(brainInputs);
@@ -400,33 +382,6 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
         }
       }
       return bestOrganism;
-    }
-
-    getNewPop() {
-      let myPopList = [];
-      let mostFit = undefined;
-      //let secondMostFit = undefined;
-      for (var key in this.pop) {
-        if (mostFit === undefined || this.pop[key].getFitness() >= mostFit.getFitness()) {
-          //secondMostFit = mostFit;
-          mostFit = this.pop[key];
-        }
-        myPopList.push(this.pop[key]);
-      }
-      let newPop = [];
-      if (mostFit !== undefined) {
-        newPop.push(mostFit);
-      }
-      // if (secondMostFit !== undefined) {
-      //   newPop.push(secondMostFit);
-      // }
-      for (var key in this.pop){
-        newPop.push(this.tournamentSelection(myPopList));
-      }
-      while(newPop.length > this.popSize) {
-        newPop.pop();
-      }
-      return newPop;
     }
 
     getCoordinates() {
@@ -500,9 +455,8 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
       }
       const body = Body.create({
         parts: bodyParts,
-        // inertia: Infinity,
-        friction: .002,
-        //friction: 0,
+        //friction: .002,
+        friction: 0,
         restitution: 0,
         sleepThreshold: Infinity
       })
@@ -566,13 +520,6 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
     }
 
     generatePop() {
-      let firstGen = false;
-      let newPop = undefined;
-      if (this.pop === {}) 
-        firstGen = true;
-      if (!firstGen) {
-        newPop = this.getNewPop();
-      }
       this.pop = {}
       let coords = this.getCoordinates();
       const order = [brain, eye, mouth, eye];
@@ -598,7 +545,6 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
       }
       
       let bodies = [];
-      //let coords = this.getCoordinates();
       
       for (var key in this.pop){
         bodies.push(this.pop[key].body);
@@ -612,20 +558,13 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
       leftWall.label = wall;
       const rightWall = Bodies.rectangle(1000, 200, 20, 1000, { isStatic: true });
       rightWall.label = wall;
-      // const ground = Bodies.rectangle(400, 600, 800, 20, { isStatic: true });
-      // ground.label = wall;
-      // const ceiling = Bodies.rectangle(400, 0, 800, 20, { isStatic: true });
-      // ceiling.label = wall;
-      // const leftWall = Bodies.rectangle(0, 200, 20, 800, { isStatic: true });
-      // leftWall.label = wall;
-      // const rightWall = Bodies.rectangle(800, 200, 20, 800, { isStatic: true });
-      // rightWall.label = wall;
 
       World.add(world, bodies.concat([ground, ceiling, leftWall, rightWall]));
     }
 
   }
-  
+
+
   let myPop = new Population(popSize, numAppendages, brainMutationRate, bodyMutationRate);
   myPop.generatePop();
   myPop.addGenerationToWorld();
@@ -652,7 +591,6 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
           World.remove(world, pair.bodyB.parent);
           myPop.pop[pair.bodyB.parent.id].isDead = true;
           myPop.pop[pair.bodyB.parent.id].getEaten();
-          //myPop.pop[pair.bodyB.parent.id].fitness += (counter - myPop.pop[pair.bodyB.parent.id].timeAdded) / 100;
           myPop.pop[pair.bodyA.parent.id].eatBrain();
           myPop.replaceOrganism(pair.bodyB.parent.id);
           eatingDeaths += 1;
@@ -660,21 +598,18 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
           World.remove(world, pair.bodyA.parent);
           myPop.pop[pair.bodyA.parent.id].isDead = true;
           myPop.pop[pair.bodyA.parent.id].getEaten();
-          //myPop.pop[pair.bodyA.parent.id].fitness += (counter - myPop.pop[pair.bodyA.parent.id].timeAdded) / 100;
           myPop.pop[pair.bodyB.parent.id].eatBrain();
           myPop.replaceOrganism(pair.bodyA.parent.id);
           eatingDeaths += 1;
         } else if (pair.bodyB.label === wall) {
           World.remove(world, pair.bodyA.parent);
           myPop.pop[pair.bodyA.parent.id].isDead = true;
-          //myPop.pop[pair.bodyA.parent.id].fitness += (counter - myPop.pop[pair.bodyA.parent.id].timeAdded) / 100;
           myPop.pop[pair.bodyA.parent.id].hitWall();
           myPop.replaceOrganism(pair.bodyA.parent.id);
           wallDeaths += 1;
         } else if (pair.bodyA.label === wall) {
           World.remove(world, pair.bodyB.parent);
           myPop.pop[pair.bodyB.parent.id].isDead = true;
-          //myPop.pop[pair.bodyB.parent.id].fitness += (counter - myPop.pop[pair.bodyB.parent.id].timeAdded) / 100;
           myPop.pop[pair.bodyB.parent.id].hitWall();
           myPop.replaceOrganism(pair.bodyB.parent.id);
           wallDeaths += 1;
@@ -727,17 +662,6 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
     }
   });
 
-
-  // const mouse = Mouse.create(render.canvas)
-  // const mouseConstraint = MouseConstraint.create(engine, {
-  //   mouse: mouse,
-  //   constraint: {
-  //     stiffness: 0.2,
-  //     render: {
-  //       visible: false
-  //     }
-  //   }
-  // })
 }
 
 runSimulation(6, 10, .05, .05);
@@ -754,9 +678,6 @@ button.addEventListener('click', function(){
     state.reset = false;
     runSimulation(state.numAppendages, state.popSize, state.brainMutationRate, state.bodyMutationRate); 
   }, 100);
-  //state.reset = false;
-  
-  //document.body.innerHTML += '<br><br><a href="/">Back to home page</a>';
 });
 
 const appendagesSlider = document.getElementById("numAppendagesSlider");

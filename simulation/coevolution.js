@@ -459,7 +459,6 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
             inputs[inputs.length - 4] = 1;
             break;
           default:
-            console.log(typesOfParts[i]);
             console.log("this should never happen");
         }
 
@@ -626,8 +625,7 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
     }
 
   }
-
-
+  
   let myPop = new Population(popSize, numAppendages, brainMutationRate, bodyMutationRate);
   myPop.generatePop();
   myPop.addGenerationToWorld();
@@ -720,8 +718,6 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
 
   Events.on(runner, "afterTick", function() {
     if (state.reset) {
-      console.log('abc');
-      console.log(engine.events);
       render.canvas.remove();
       engine.events = {}
       runner.events = {}
@@ -756,7 +752,7 @@ button.addEventListener('click', function(){
   state.reset = true;
   setTimeout(function(){ 
     state.reset = false;
-    runSimulation(state.numAppendages, state.popSize); 
+    runSimulation(state.numAppendages, state.popSize, state.brainMutationRate, state.bodyMutationRate); 
   }, 100);
   //state.reset = false;
   

@@ -3,8 +3,6 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
   const Engine = Matter.Engine;
   const Render = Matter.Render;
   const Runner = Matter.Runner;
-  const MouseConstraint = Matter.MouseConstraint;
-  const Mouse = Matter.Mouse;
   const World = Matter.World;
   const Events = Matter.Events;
   const Composite = Matter.Composite;
@@ -329,7 +327,7 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
       
       const forceX = brainOutputs[0] / 200;
       const forceY = brainOutputs[1] / 200
-      const torque = brainOutputs[2] / 300;
+      const torque = brainOutputs[2] / 400;
 
       Body.applyForce(this.body, this.body.position, {
         x: forceX, 
@@ -344,8 +342,8 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
         x: this.body.velocity.x < -.1 ? -.1 : this.body.velocity.x,
         y: this.body.velocity.y < -.1 ? -.1 : this.body.velocity.y,
       });
-      if (this.body.angularVelocity > .1 && torque > 0 ||
-          this.body.angularVelocity < -.1 && torque < 0) {
+      if (this.body.angularVelocity > .05 && torque > 0 ||
+          this.body.angularVelocity < -.05 && torque < 0) {
             return;
       }
       // Body.setAngularVelocity(this.body, this.body.angularVelocity > .075 ? .075 : this.body.angularVelocity);
@@ -532,10 +530,11 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
     generatePop() {
       this.pop = {}
       let coords = this.getCoordinates();
-      const order = [brain, eye, mouth, eye];
+      let order = [brain, eye, mouth, eye];
       for (let i = 0; i < this.numAppendages - order.length; ++i) {
         order.push(regular);
       }
+      order = shuffle(order);
       const bodyGenerator = neataptic.architect.Perceptron(4*this.numAppendages, 4*(this.numAppendages+3), 4*(this.numAppendages+1), this.numAppendages);
       for (let j = 0; j < this.popSize; ++j) {
         coords = shuffle(coords);
@@ -573,7 +572,6 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
     }
 
   }
-
 
   let myPop = new Population(popSize, numAppendages, brainMutationRate, bodyMutationRate);
   myPop.generatePop();

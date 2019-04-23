@@ -39,7 +39,7 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
 
   // screw you Netwon!
   engine.world.gravity.y = 0;
-  setInterval(function() { Engine.update(engine, 2000 / 60); }, 2000 / 60);
+  setInterval(function() { Engine.update(engine, 1000 / 60); }, 1000 / 60);
 
   // https://coderwall.com/p/flonoa/simple-string-format-in-javascript
   // a useful function which helps format strings.
@@ -183,7 +183,7 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
     }
 
     eatBrain() {
-      this.fitness += 20;
+      this.fitness += 30;
     }
 
     hitWall() {
@@ -329,7 +329,7 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
       
       const forceX = brainOutputs[0] / 200;
       const forceY = brainOutputs[1] / 200
-      const torque = brainOutputs[2] / 100;
+      const torque = brainOutputs[2] / 300;
 
       Body.applyForce(this.body, this.body.position, {
         x: forceX, 
@@ -344,6 +344,16 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
         x: this.body.velocity.x < -.1 ? -.1 : this.body.velocity.x,
         y: this.body.velocity.y < -.1 ? -.1 : this.body.velocity.y,
       });
+      if (this.body.angularVelocity > .1 && torque > 0 ||
+          this.body.angularVelocity < -.1 && torque < 0) {
+            return;
+      }
+      // Body.setAngularVelocity(this.body, this.body.angularVelocity > .075 ? .075 : this.body.angularVelocity);
+      // Body.setAngularVelocity(this.body, this.body.angularVelocity < -.075 ? -.075 : this.body.angularVelocity);
+      // Body.setAngularVelocity(this.body, {
+      //   x: this.body.angularVelocity.x > -.1 ? -.1 : this.body.angularVelocity.x,
+      //   y: this.body.angularVelocity.y > -.1 ? -.1 : this.body.angularVelocity.y,
+      // });
       this.body.torque += torque;
     }
 
@@ -420,7 +430,7 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
       }
       const bodyLengths = bodyGenerator.activate(inputs);
       for (let k = 0; k < bodyLengths.length; ++k) {
-        bodyLengths[k] *= 10;
+        bodyLengths[k] *= 7;
       }
       return bodyLengths;
     }
@@ -433,7 +443,7 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
       const yCoord2 = 40 + (Math.cos(angle+angleConst) * 10);
       const lengthsOfParts = this.getLengths(bodyGenerator, typesOfParts);
       for (let i = 0; i < numAppendages; ++i) {
-        const len = 50 + Math.floor(lengthsOfParts[i]);
+        const len = 45 + Math.floor(lengthsOfParts[i]);
         const coords = '20 {0} 10 50 20 {1} {2} 50'.format(yCoord1, yCoord2, len);
         var corner = Vertices.fromPath(coords);
         let concave = Bodies.fromVertices(x + len/3*Math.cos(i * angle), y + len/3*Math.sin(i * angle), corner);
@@ -625,7 +635,7 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
   Events.on(engine, 'beforeUpdate', function() {
     if (!myPop || !myPop.pop) return;
     let popAllDead = false;
-    if (counter % 10 === 0) {
+    if (counter % 5 === 0) {
       popAllDead = true;
       for (var key in myPop.pop){
         if (myPop !== undefined && !myPop.pop[key].isDead) {

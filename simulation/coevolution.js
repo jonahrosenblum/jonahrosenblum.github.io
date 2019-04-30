@@ -1,4 +1,4 @@
-function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRate) {
+function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRate, mutationRateHeritage) {
   
   const Engine = Matter.Engine;
   const Render = Matter.Render;
@@ -125,10 +125,12 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
       this.eyeIndex1 = -1;
       this.eyeIndex2 = -1;
       this.mouthIndex = 0;
-      this.isDead = false;
       this.brain = undefined;
       this.bodyGenerator = undefined;
       this.order = [];
+      this.brainMutationRate = .08;
+      this.bodyMutationRate = .08;
+
       for (let i = 0; i < this.body.parts.length; ++i) {
         if (body.parts[i].label === eye && this.eyeIndex1 === -1) {
           this.eyeIndex1 = i;
@@ -181,7 +183,7 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
     }
 
     eatBrain() {
-      this.fitness += 30;
+      this.fitness += 25;
     }
 
     hitWall() {
@@ -191,23 +193,19 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
     getRaycast(eyeIndex) {
       // this list of bodies is useful for raycasting
       const bodies = Composite.allBodies(engine.world);
-      // due to an annoying bug, we need to make sure that our organism
-      // still exists in the world before doing anything - before this there were
-      // phantom organisms shooting out rays
-      let itemStillExists = false;
-      for (let index = 0; index < bodies.length; ++index) {
-        if (bodies[index].id === this.body.id) itemStillExists = true;
-      }
-      if (!itemStillExists) {
-        myPop.pop[this.body.id].isDead = true;
-        return [];
-      }
       const xMultiplier = Math.cos(this.body.parts[eyeIndex].angle + this.body.angle);
       const yMultiplier = Math.sin(this.body.parts[eyeIndex].angle + this.body.angle);
-      
+      // const context = render.context;
+      // context.beginPath();
+      // context.moveTo(this.body.parts[eyeIndex].position.x, this.body.parts[eyeIndex].position.y);
+      // context.lineTo(xMultiplier * 1E5, yMultiplier * 1E5);
+      // context.lineWidth = 0.5;
+      // context.strokeStyle = '#fff';
+      // context.stroke();
+      // why such a large number? smaller numbers don't work for some reason.
       const array = raycast(bodies, this.body.parts[eyeIndex].position, 
-                            { x: xMultiplier * 1600, 
-                              y: yMultiplier * 1600
+                            { x: xMultiplier * 1E5, 
+                              y: yMultiplier * 1E5
                             });
       // remove all raycast collisions with the organisms own body
       while(array.last() !== undefined && array.last().body.parent.id === this.body.id) {
@@ -360,16 +358,22 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
       this.bodyGenerator = bodyGenerator;
       this.order = order;
     }
+
+    setMutationRates(brainMutationRate, bodyMutationRate) {
+      this.brainMutationRate = brainMutationRate;
+      this.bodyMutationRate = bodyMutationRate;
+    }
   }
 
 
   class Population {
-    constructor(popSize, numAppendages, brainMutationRate, bodyMutationRate) {
+    constructor(popSize, numAppendages, brainMutationRate, bodyMutationRate, mutationRateHeritage) {
       this.pop = {};
       this.popSize = popSize;
       this.numAppendages = numAppendages;
       this.brainMutationRate = brainMutationRate;
       this.bodyMutationRate = bodyMutationRate;
+      this.mutationRateHeritage = mutationRateHeritage;
     }
 
     tournamentSelection(myPopList) {
@@ -476,9 +480,7 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
       delete this.pop[idOfReplaced];
       let myPopList = [];
       for (var key in this.pop) {
-        if (!this.pop[key].isDead) {
-          myPopList.push(this.pop[key]);
-        }
+        myPopList.push(this.pop[key]);
       }
       const replacement = this.tournamentSelection(myPopList);
       let coords = this.getCoordinates();
@@ -491,39 +493,51 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
       const newBodyGenerator = neataptic.Network.fromJSON(replacement.bodyGenerator.toJSON());
       const newOrder = JSON.parse(JSON.stringify(replacement.order));
 
+      const randIncrement1 = getRandomArbitrary(0,1) > .5 ? -.005 : .005;
+      const randIncrement2 = getRandomArbitrary(0,1) > .5 ? -.005 : .005;
+      let currentBrainMutationRate = this.mutationRateHeritage ? 
+                                       replacement.brainMutationRate + randIncrement1 : this.brainMutationRate;
+      let currentBodyMutationRate = this.mutationRateHeritage ? 
+                                       replacement.bodyMutationRate + randIncrement2 : this.bodyMutationRate;
+      currentBrainMutationRate = currentBrainMutationRate < 0 ? 0 : currentBrainMutationRate;
+      currentBodyMutationRate = currentBodyMutationRate < 0 ? 0 : currentBodyMutationRate;
+      
+      newBody.brainMutationRate = currentBrainMutationRate
+      newBody.bodyMutationRate = currentBodyMutationRate;
       for (let weight = 0; weight < newBrain.connections.length; ++weight) {
-        if (getRandomArbitrary(0,1) > 1 - this.brainMutationRate) {
+        if (getRandomArbitrary(0,1) > 1 - currentBrainMutationRate) {
           newBrain.connections[weight].weight += getRandomArbitrary(neataptic.methods.mutation.MOD_WEIGHT.min, 
                                                                     neataptic.methods.mutation.MOD_WEIGHT.max);
         }
       }
 
       for (let node = 0; node < newBrain.nodes.length; ++node) {
-        if (getRandomArbitrary(0,1) > 1 - this.brainMutationRate) {
+        if (getRandomArbitrary(0,1) > 1 - currentBrainMutationRate) {
           newBrain.nodes[node].bias += getRandomArbitrary(neataptic.methods.mutation.MOD_BIAS.min, 
                                                           neataptic.methods.mutation.MOD_BIAS.max);
         }
       }
 
       for (let weight = 0; weight < newBodyGenerator.connections.length; ++weight) {
-        if (getRandomArbitrary(0,1) > 1 - this.bodyMutationRate) {
+        if (getRandomArbitrary(0,1) > 1 - currentBodyMutationRate) {
           newBodyGenerator.connections[weight].weight += getRandomArbitrary(neataptic.methods.mutation.MOD_WEIGHT.min, 
                                                                         neataptic.methods.mutation.MOD_WEIGHT.max);
         }
       }
 
       for (let node = 0; node < newBodyGenerator.nodes.length; ++node) {
-        if (getRandomArbitrary(0,1) > 1 - this.bodyMutationRate) {
+        if (getRandomArbitrary(0,1) > 1 - currentBodyMutationRate) {
           newBodyGenerator.nodes[node].bias += getRandomArbitrary(neataptic.methods.mutation.MOD_BIAS.min, 
                                                           neataptic.methods.mutation.MOD_BIAS.max);
         }
       }
 
-      if (getRandomArbitrary(0,1) > 1 - this.bodyMutationRate) {
+      if (getRandomArbitrary(0,1) > 1 - currentBrainMutationRate) {
         newOrder.randomSwap(newOrder.length);
       }
       
       this.pop[newBody.id].setBrainAndBody(newBrain, newBodyGenerator, newOrder);
+      this.pop[newBody.id].setMutationRates(currentBrainMutationRate, currentBodyMutationRate);
       World.add(world, newBody);
     }
 
@@ -541,6 +555,7 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
         const bodyCoords = coords.pop();
         const body = this.getNBody(this.numAppendages, bodyGenerator, order, bodyCoords.x, bodyCoords.y);
         let organism = new Organism(body, this.numAppendages, true);
+        organism.setMutationRates(this.brainMutationRate, this.bodyMutationRate);
         this.pop[body.id] = organism;
       }
     }
@@ -573,7 +588,7 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
 
   }
 
-  let myPop = new Population(popSize, numAppendages, brainMutationRate, bodyMutationRate);
+  let myPop = new Population(popSize, numAppendages, brainMutationRate, bodyMutationRate, mutationRateHeritage);
   myPop.generatePop();
   myPop.addGenerationToWorld();
 
@@ -597,27 +612,23 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
           myPop.pop[pair.bodyA.parent.id].loseRegular();
         } else if (pair.bodyA.label === mouth && pair.bodyB.label === brain) {
           World.remove(world, pair.bodyB.parent);
-          myPop.pop[pair.bodyB.parent.id].isDead = true;
           myPop.pop[pair.bodyB.parent.id].getEaten();
           myPop.pop[pair.bodyA.parent.id].eatBrain();
           myPop.replaceOrganism(pair.bodyB.parent.id);
           eatingDeaths += 1;
         } else if (pair.bodyB.label === mouth && pair.bodyA.label === brain) {
           World.remove(world, pair.bodyA.parent);
-          myPop.pop[pair.bodyA.parent.id].isDead = true;
           myPop.pop[pair.bodyA.parent.id].getEaten();
           myPop.pop[pair.bodyB.parent.id].eatBrain();
           myPop.replaceOrganism(pair.bodyA.parent.id);
           eatingDeaths += 1;
         } else if (pair.bodyB.label === wall) {
           World.remove(world, pair.bodyA.parent);
-          myPop.pop[pair.bodyA.parent.id].isDead = true;
           myPop.pop[pair.bodyA.parent.id].hitWall();
           myPop.replaceOrganism(pair.bodyA.parent.id);
           wallDeaths += 1;
         } else if (pair.bodyA.label === wall) {
           World.remove(world, pair.bodyB.parent);
-          myPop.pop[pair.bodyB.parent.id].isDead = true;
           myPop.pop[pair.bodyB.parent.id].hitWall();
           myPop.replaceOrganism(pair.bodyB.parent.id);
           wallDeaths += 1;
@@ -629,14 +640,13 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
   let counter = 0;
   let wallDeaths = 0;
   let eatingDeaths = 0;
-
   Events.on(engine, 'beforeUpdate', function() {
     if (!myPop || !myPop.pop) return;
     let popAllDead = false;
     if (counter % 5 === 0) {
       popAllDead = true;
       for (var key in myPop.pop){
-        if (myPop !== undefined && !myPop.pop[key].isDead) {
+        if (myPop !== undefined) {
           popAllDead = false;
           var theOrganism = myPop.pop[key];
           theOrganism.nextMovement();
@@ -644,12 +654,13 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
         }
       }
     }
+    
     if (counter % 1000 === 0 || popAllDead) {
       document.getElementById("gen").innerHTML = "Generation: {0}".format(counter / 1000);
-      console.log("Wall deaths: {0}\nEating deaths: {1}\nTotal deaths: {2}".format(wallDeaths / (wallDeaths + eatingDeaths),
-      eatingDeaths / (wallDeaths + eatingDeaths), wallDeaths + eatingDeaths));
-      eatingDeaths = 0;
-      wallDeaths = 0;
+      // console.log("Wall deaths: {0}\nEating deaths: {1}\nTotal deaths: {2}".format(wallDeaths / (wallDeaths + eatingDeaths),
+      // eatingDeaths / (wallDeaths + eatingDeaths), wallDeaths + eatingDeaths));
+      // eatingDeaths = 0;
+      // wallDeaths = 0;
       const degen = degeneration(counter / 1000) + .1;
       neataptic.methods.mutation.MOD_WEIGHT.min = -degen;
       neataptic.methods.mutation.MOD_WEIGHT.max = degen;
@@ -672,19 +683,20 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
 
 }
 
-runSimulation(6, 10, .05, .05);
+runSimulation(6, 12, .05, .05, false);
 
 const state = {'numAppendages': 6,
-               'popSize': 10,
+               'popSize': 12,
                'brainMutationRate': .05,
                'bodyMutationRate': .05,
-               'reset': false};
+               'reset': false,
+               'passOnMutation' : false};
 const button = document.getElementById("simulationRunner");
 button.addEventListener('click', function(){
   state.reset = true;
   setTimeout(function(){ 
     state.reset = false;
-    runSimulation(state.numAppendages, state.popSize, state.brainMutationRate, state.bodyMutationRate); 
+    runSimulation(state.numAppendages, state.popSize, state.brainMutationRate, state.bodyMutationRate, state.passOnMutation); 
   }, 100);
 });
 
@@ -718,4 +730,9 @@ bodyMutationInput.addEventListener('input', function(){
     bodyMutationInput.value = .05;
   }
   state.bodyMutationRate = Number(bodyMutationInput.value);
+});
+
+const heritageToggle = document.getElementById("heritageToggle");
+heritageToggle.addEventListener('click', function(){
+  state.passOnMutation = !state.passOnMutation;
 });

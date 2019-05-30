@@ -27,13 +27,13 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
   Runner.run(runner, engine);
 
   // some constants for the organism's bodies
-  const eaten = 0;
+  // const eaten = 0;
   const brain = .25;
   const regular = .5
   const eye = .75;
   const mouth = 1;
   const wall = 2;
-  const numTypes = 6;
+  const numTypes = 5;
 
   // screw you Netwon!
   engine.world.gravity.y = 0;
@@ -119,17 +119,17 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
   // fitness, and movements.
   class Organism {
 
-    constructor(body, numAppendages, firstGen) {
+    constructor(body, order, bodyGenerator, firstGen) {
       this.body = body;
       this.fitness = 0;
       this.eyeIndex1 = -1;
       this.eyeIndex2 = -1;
       this.mouthIndex = 0;
       this.brain = undefined;
-      this.bodyGenerator = undefined;
-      this.order = [];
-      this.brainMutationRate = .08;
-      this.bodyMutationRate = .08;
+      this.bodyGenerator = bodyGenerator;
+      this.order = order;
+      this.brainMutationRate = .05;
+      this.bodyMutationRate = .05;
 
       for (let i = 0; i < this.body.parts.length; ++i) {
         if (body.parts[i].label === eye && this.eyeIndex1 === -1) {
@@ -149,20 +149,6 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
           this.brain.mutate(neataptic.methods.mutation.MOD_WEIGHT);
           this.brain.mutate(neataptic.methods.mutation.MOD_BIAS);
         }
-        this.bodyGenerator = neataptic.architect.Perceptron(4*numAppendages, 4*(numAppendages+3), 4*(numAppendages+1), numAppendages);
-        for (let j = 0; j < this.bodyGenerator.nodes.length; ++j) {
-          this.bodyGenerator.nodes[j].squash = neataptic.methods.activation.TANH;
-        }
-        for (let k = 0; k < 500; ++k) {
-          this.bodyGenerator.mutate(neataptic.methods.mutation.MOD_WEIGHT);
-          this.bodyGenerator.mutate(neataptic.methods.mutation.MOD_BIAS);
-        }
-        this.order = [brain, eye, mouth, eye];
-
-        for (let i = 0; i < numAppendages - 4; ++i) {
-          this.order.push(regular);
-        }
-        this.order = shuffle(this.order);
       }
     }
 
@@ -183,7 +169,7 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
     }
 
     eatBrain() {
-      this.fitness += 25;
+      this.fitness += 100;
     }
 
     hitWall() {
@@ -252,25 +238,25 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
       for (let input = 0; input < numTypes; ++input) {
         brainInputs.push(0);
       }
-      let numInputs = 18;
+      let numInputs = 17;
       switch(bodies1.last().body.label) {
-        case eaten:
+        // case eaten:
+        //   brainInputs[numInputs - numTypes] = 1;
+        //   break;
+        case brain:
           brainInputs[numInputs - numTypes] = 1;
           break;
-        case brain:
+        case regular:
           brainInputs[numInputs - numTypes + 1] = 1;
           break;
-        case regular:
+        case eye:
           brainInputs[numInputs - numTypes + 2] = 1;
           break;
-        case eye:
+        case mouth:
           brainInputs[numInputs - numTypes + 3] = 1;
           break;
-        case mouth:
-          brainInputs[numInputs - numTypes + 4] = 1;
-          break;
         case wall:
-          brainInputs[numInputs - numTypes + 5] = 1;
+          brainInputs[numInputs - numTypes + 4] = 1;
           break;
         default:
           console.log("this should never happen");
@@ -279,25 +265,25 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
       for (let input = 0; input < numTypes; ++input) {
         brainInputs.push(0);
       }
-      numInputs = 24;
+      numInputs = 22;
       switch(bodies2.last().body.label) {
-        case eaten:
+        // case eaten:
+        //   brainInputs[numInputs - numTypes] = 1;
+        //   break;
+        case brain:
           brainInputs[numInputs - numTypes] = 1;
           break;
-        case brain:
+        case regular:
           brainInputs[numInputs - numTypes + 1] = 1;
           break;
-        case regular:
+        case eye:
           brainInputs[numInputs - numTypes + 2] = 1;
           break;
-        case eye:
+        case mouth:
           brainInputs[numInputs - numTypes + 3] = 1;
           break;
-        case mouth:
-          brainInputs[numInputs - numTypes + 4] = 1;
-          break;
         case wall:
-          brainInputs[numInputs - numTypes + 5] = 1;
+          brainInputs[numInputs - numTypes + 4] = 1;
           break;
         default:
           console.log("this should never happen");
@@ -319,7 +305,7 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
 
       const brainInputs = this.getBrainInputs(bodies1, bodies2);
 
-      if (brainInputs === undefined || brainInputs.length !== 24) return;
+      if (brainInputs === undefined || brainInputs.length !== 22) return;
       
       const brainOutputs = this.brain.activate(brainInputs);
       
@@ -353,10 +339,9 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
       this.body.torque += torque;
     }
 
-    setBrainAndBody(brain, bodyGenerator, order) {
+    setBrainAndBody(brain, bodyGenerator) {
       this.brain = brain;
       this.bodyGenerator = bodyGenerator;
-      this.order = order;
     }
 
     setMutationRates(brainMutationRate, bodyMutationRate) {
@@ -440,15 +425,36 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
     getNBody(numAppendages, bodyGenerator, typesOfParts, x, y) {
       const bodyParts = [];
       const angle = (Math.PI * 2 / numAppendages);
-      const angleConst = specialSigmoid(numAppendages) * .2;
-      const yCoord1 = 60 - (Math.cos(angle+angleConst) * 10);
-      const yCoord2 = 40 + (Math.cos(angle+angleConst) * 10);
+      
       const lengthsOfParts = this.getLengths(bodyGenerator, typesOfParts);
+      
       for (let i = 0; i < numAppendages; ++i) {
-        const len = 45 + Math.floor(lengthsOfParts[i]);
-        const coords = '20 {0} 10 50 20 {1} {2} 50'.format(yCoord1, yCoord2, len);
+        const len1 = 30 + lengthsOfParts[i];
+        const len2 = 30 + ((i === numAppendages - 1) ? lengthsOfParts[0] : lengthsOfParts[i + 1]);
+        const xCoord1 = len1 * Math.cos(angle / 2 + (2 * i * Math.PI / numAppendages));
+        const xCoord2 = len2 * Math.cos(angle / 2 + (2 * (i + 1) * Math.PI / numAppendages));
+        const yCoord1 = len1 * Math.sin(angle / 2 + (2 * i * Math.PI / numAppendages));
+        const yCoord2 = len2 * Math.sin(angle / 2 + (2 * (i + 1) * Math.PI / numAppendages));
+
+        let coords = '0 0 {0} {1} {2} {3} '.format(xCoord1, yCoord1, xCoord2, yCoord2);
+        if (typesOfParts[i] === mouth) {
+          const xIntermediate = 45 * (xCoord1 / len1 + xCoord2 / len2) / 2;
+          const yIntermediate = 45 * (yCoord1 / len1 + yCoord2 / len2) / 2;
+          // let unitVector = [-(yCoord2 - yCoord1), (xCoord2 - xCoord1)];
+          // const magnitude = Math.sqrt(Math.pow(unitVector[0], 2) +  Math.pow(unitVector[1], 2));
+          // unitVector[0] /= magnitude;
+          // unitVector[1] /= magnitude;
+          // const x3 = xIntermediate - (20 * unitVector[0]);
+          // const y3 = yIntermediate - (20 * unitVector[1]);
+          
+          coords = '0 0 {0} {1} {2} {3} {4} {5} '.format(xCoord1, yCoord1, xIntermediate, yIntermediate, xCoord2, yCoord2);
+        }
         var corner = Vertices.fromPath(coords);
-        let concave = Bodies.fromVertices(x + len/3*Math.cos(i * angle), y + len/3*Math.sin(i * angle), corner);
+        
+        let concave = Bodies.fromVertices(x, y , corner);
+        if (!concave) {
+          console.log(coords);
+        }
         if (typesOfParts[i] === mouth) {
           concave.label = mouth;
           concave.render.fillStyle = '#0000FF';
@@ -460,9 +466,13 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
           concave.render.fillStyle = '#CCCC00';
         } else {
           concave.label = regular;
-          concave.render.fillStyle = '#00CC00';
+          concave.render.fillStyle = '#D3D3D3';
         }
-        Body.rotate(concave, i * angle);
+        var centre = Vertices.centre(corner);
+        Body.setPosition(concave, {
+          x: concave.position.x + centre.x,
+          y: concave.position.y + centre.y
+        });
         bodyParts.push(concave);
       }
       const body = Body.create({
@@ -487,8 +497,7 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
       coords = shuffle(coords);
       const bodyCoords = coords.pop();
       const newBody = this.getNBody(this.numAppendages, replacement.bodyGenerator, replacement.order, bodyCoords.x, bodyCoords.y);
-      let organism = new Organism(newBody, this.numAppendages, false);
-      this.pop[newBody.id] = organism;
+      
       const newBrain = neataptic.Network.fromJSON(replacement.brain.toJSON());
       const newBodyGenerator = neataptic.Network.fromJSON(replacement.bodyGenerator.toJSON());
       const newOrder = JSON.parse(JSON.stringify(replacement.order));
@@ -535,8 +544,9 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
       if (getRandomArbitrary(0,1) > 1 - currentBrainMutationRate) {
         newOrder.randomSwap(newOrder.length);
       }
-      
-      this.pop[newBody.id].setBrainAndBody(newBrain, newBodyGenerator, newOrder);
+      let organism = new Organism(newBody, newOrder, newBodyGenerator, false);
+      this.pop[newBody.id] = organism;
+      this.pop[newBody.id].setBrainAndBody(newBrain, newBodyGenerator);
       this.pop[newBody.id].setMutationRates(currentBrainMutationRate, currentBodyMutationRate);
       World.add(world, newBody);
     }
@@ -545,16 +555,32 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
       this.pop = {}
       let coords = this.getCoordinates();
       let order = [brain, eye, mouth, eye];
-      for (let i = 0; i < this.numAppendages - order.length; ++i) {
-        order.push(regular);
+      const length = order.length;
+      for (let i = 0; i < this.numAppendages - length; ++i) {
+        if (i % 3 == 0) {
+          order.push(brain);
+        } else {
+          order.push(regular);
+        }
       }
-      order = shuffle(order);
+
+      //console.log(this.numAppendages - order.length, order);
+      
       const bodyGenerator = neataptic.architect.Perceptron(4*this.numAppendages, 4*(this.numAppendages+3), 4*(this.numAppendages+1), this.numAppendages);
+      for (let j = 0; j < bodyGenerator.nodes.length; ++j) {
+        bodyGenerator.nodes[j].squash = neataptic.methods.activation.TANH;
+      }
+
       for (let j = 0; j < this.popSize; ++j) {
+        for (let k = 0; k < 500; ++k) {
+          bodyGenerator.mutate(neataptic.methods.mutation.MOD_WEIGHT);
+          bodyGenerator.mutate(neataptic.methods.mutation.MOD_BIAS);
+        }
+        order = shuffle(order);
         coords = shuffle(coords);
         const bodyCoords = coords.pop();
         const body = this.getNBody(this.numAppendages, bodyGenerator, order, bodyCoords.x, bodyCoords.y);
-        let organism = new Organism(body, this.numAppendages, true);
+        let organism = new Organism(body, order, bodyGenerator, true);
         organism.setMutationRates(this.brainMutationRate, this.bodyMutationRate);
         this.pop[body.id] = organism;
       }
@@ -600,17 +626,18 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
             (!has(myPop.pop, pair.bodyB.parent.id) && pair.bodyB.label != wall)) {
           continue;
         }
-        if (pair.bodyA.label === mouth && pair.bodyB.label === regular) {
-          pair.bodyB.label = eaten;
-          pair.bodyB.render.fillStyle = '#D3D3D3';
-          myPop.pop[pair.bodyA.parent.id].eatRegular();
-          myPop.pop[pair.bodyB.parent.id].loseRegular();
-        } else if (pair.bodyB.label === mouth && pair.bodyA.label === regular) {
-          pair.bodyA.label = eaten;
-          pair.bodyA.render.fillStyle = '#D3D3D3';
-          myPop.pop[pair.bodyB.parent.id].eatRegular();
-          myPop.pop[pair.bodyA.parent.id].loseRegular();
-        } else if (pair.bodyA.label === mouth && pair.bodyB.label === brain) {
+        // if (pair.bodyA.label === mouth && pair.bodyB.label === regular) {
+        //   pair.bodyB.label = eaten;
+        //   pair.bodyB.render.fillStyle = '#D3D3D3';
+        //   myPop.pop[pair.bodyA.parent.id].eatRegular();
+        //   myPop.pop[pair.bodyB.parent.id].loseRegular();
+        // } else if (pair.bodyB.label === mouth && pair.bodyA.label === regular) {
+        //   pair.bodyA.label = eaten;
+        //   pair.bodyA.render.fillStyle = '#D3D3D3';
+        //   myPop.pop[pair.bodyB.parent.id].eatRegular();
+        //   myPop.pop[pair.bodyA.parent.id].loseRegular();
+        // } else 
+        if (pair.bodyA.label === mouth && pair.bodyB.label === brain) {
           World.remove(world, pair.bodyB.parent);
           myPop.pop[pair.bodyB.parent.id].getEaten();
           myPop.pop[pair.bodyA.parent.id].eatBrain();
@@ -638,8 +665,10 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
 
 
   let counter = 0;
+  // const time = new Date()
   let wallDeaths = 0;
   let eatingDeaths = 0;
+
   Events.on(engine, 'beforeUpdate', function() {
     if (!myPop || !myPop.pop) return;
     let popAllDead = false;
@@ -654,13 +683,9 @@ function runSimulation(numAppendages, popSize, brainMutationRate, bodyMutationRa
         }
       }
     }
-    
+
     if (counter % 1000 === 0 || popAllDead) {
       document.getElementById("gen").innerHTML = "Generation: {0}".format(counter / 1000);
-      // console.log("Wall deaths: {0}\nEating deaths: {1}\nTotal deaths: {2}".format(wallDeaths / (wallDeaths + eatingDeaths),
-      // eatingDeaths / (wallDeaths + eatingDeaths), wallDeaths + eatingDeaths));
-      // eatingDeaths = 0;
-      // wallDeaths = 0;
       const degen = degeneration(counter / 1000) + .1;
       neataptic.methods.mutation.MOD_WEIGHT.min = -degen;
       neataptic.methods.mutation.MOD_WEIGHT.max = degen;

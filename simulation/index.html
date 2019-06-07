@@ -10,8 +10,8 @@
         <div class="col">
             Number of Appendages on Organism
             </br>
-            6 <input type="range" step="1" min="4" max="30" id="numAppendagesSlider" value="6" name="appen"> 30<br>
-            <div id="appenValue">Current value: 6</div>
+            4 <input type="range" step="1" min="4" max="30" id="numAppendagesSlider" value="8" name="appen"> 30<br>
+            <div id="appenValue">Current value: 8</div>
         </div>
         <div class="col">
           Population Size
@@ -38,14 +38,22 @@
             <span class="slider round"></span>
           </label>
         </div>
+        <div class="col">
+          Speed Up
+          <input type="button" id="speedUpButton"><br>
+          (Currently working on a way to slow the simulation back down after it's sped up)
+        </div>
     </div>
     <br><br>
     <div id="gen">Generation 0</div>
-    <script src="matter.js" type="text/javascript"></script>
-    <script src="decomp.js" type="text/javascript"></script>
-    <script src="raycast_es6.js" type="text/javascript"></script>
-    <script src="neataptic.js" type="text/javascript"></script>
-    <script src="coevolution.js" type="text/javascript"></script>
+    <script src="third-party/matter.js" type="text/javascript"></script>
+    <script src="third-party/decomp.min.js" type="text/javascript"></script>
+    <script src="third-party/raycast_es6.js" type="text/javascript"></script>
+    <script src="https://wagenaartje.github.io/neataptic/cdn/1.4.7/neataptic.js"></script>
+    <script src="setup.js" type="text/javascript"></script>
+    <script src="organism.js" type="text/javascript"></script>
+    <script src="population.js" type="text/javascript"></script>
+    <script src="simulation.js" type="text/javascript"></script>
     
   </body>
   <br><br>

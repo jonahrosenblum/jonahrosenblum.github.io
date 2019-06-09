@@ -16,11 +16,11 @@ class Organism {
 
     // these are values that will be given to the brain so it can understand its body
     for (let i = 0; i < this.body.parts.length; ++i) {
-      if (body.parts[i].label === eye && !this.eyeIndex1) {
+      if (body.parts[i].label === EYE && !this.eyeIndex1) {
         this.eyeIndex1 = i;
-      } else if (body.parts[i].label === eye){
+      } else if (body.parts[i].label === EYE){
         this.eyeIndex2 = i;
-      } else if (body.parts[i].label === mouth) {
+      } else if (body.parts[i].label === MOUTH) {
         this.mouthIndex = i;
       }
     }
@@ -105,19 +105,19 @@ class Organism {
     let numInputs = 17;
 
     switch(bodies1.last().body.label) {
-      case brain:
+      case BRAIN:
         brainInputs[numInputs - numTypes] = 1;
         break;
-      case regular:
+      case REGULAR:
         brainInputs[numInputs - numTypes + 1] = 1;
         break;
-      case eye:
+      case EYE:
         brainInputs[numInputs - numTypes + 2] = 1;
         break;
-      case mouth:
+      case MOUTH:
         brainInputs[numInputs - numTypes + 3] = 1;
         break;
-      case wall:
+      case WALL:
         brainInputs[numInputs - numTypes + 4] = 1;
         break;
       default:
@@ -132,19 +132,19 @@ class Organism {
     numInputs = 22;
 
     switch(bodies2.last().body.label) {
-      case brain:
+      case BRAIN:
         brainInputs[numInputs - numTypes] = 1;
         break;
-      case regular:
+      case REGULAR:
         brainInputs[numInputs - numTypes + 1] = 1;
         break;
-      case eye:
+      case EYE:
         brainInputs[numInputs - numTypes + 2] = 1;
         break;
-      case mouth:
+      case MOUTH:
         brainInputs[numInputs - numTypes + 3] = 1;
         break;
-      case wall:
+      case WALL:
         brainInputs[numInputs - numTypes + 4] = 1;
         break;
       default:

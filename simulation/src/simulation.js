@@ -3,23 +3,23 @@ function addEvents(engine, myPop) {
     var pairs = event.pairs;
     for (var i = 0, j = pairs.length; i != j; ++i) {
         var pair = pairs[i];
-        if ((!has(myPop.pop, pair.bodyA.parent.id) && pair.bodyA.label != wall) ||
-            (!has(myPop.pop, pair.bodyB.parent.id) && pair.bodyB.label != wall)) {
+        if ((!has(myPop.pop, pair.bodyA.parent.id) && pair.bodyA.label != WALL) ||
+            (!has(myPop.pop, pair.bodyB.parent.id) && pair.bodyB.label != WALL)) {
           continue;
         }
         
-        if (pair.bodyA.label === mouth && pair.bodyB.label === brain) {
+        if (pair.bodyA.label === MOUTH && pair.bodyB.label === BRAIN) {
           World.remove(world, pair.bodyB.parent);
           myPop.pop[pair.bodyA.parent.id].eatBrain();
           myPop.replaceOrganism(pair.bodyB.parent.id);
-        } else if (pair.bodyB.label === mouth && pair.bodyA.label === brain) {
+        } else if (pair.bodyB.label === MOUTH && pair.bodyA.label === BRAIN) {
           World.remove(world, pair.bodyA.parent);
           myPop.pop[pair.bodyB.parent.id].eatBrain();
           myPop.replaceOrganism(pair.bodyA.parent.id);
-        } else if (pair.bodyB.label === wall) {
+        } else if (pair.bodyB.label === WALL) {
           World.remove(world, pair.bodyA.parent);
           myPop.replaceOrganism(pair.bodyA.parent.id);
-        } else if (pair.bodyA.label === wall) {
+        } else if (pair.bodyA.label === WALL) {
           World.remove(world, pair.bodyB.parent);
           myPop.replaceOrganism(pair.bodyB.parent.id);
         }
@@ -147,10 +147,14 @@ heritageToggle.addEventListener('click', function(){
   state.passOnMutation = !state.passOnMutation;
 });
 
+let intervals = [];
+
 const speedUpButton = document.getElementById("speedUpButton");
 speedUpButton.addEventListener('click', function() {
-  (function run() {
-    window.requestAnimationFrame(run);
-    Engine.update(engine, 1000 / 60);
-  })();
+  intervals.push(setInterval(() => Matter.Engine.update(engine, 1000 / 60), 1000 / 60));
+});
+
+const slowDownButton = document.getElementById("slowDownButton");
+slowDownButton.addEventListener('click', function() {
+  intervals.forEach((interval) => clearInterval(interval));
 });

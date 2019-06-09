@@ -14,14 +14,12 @@ let runner = undefined;
 let render = undefined;
 let myPop = undefined;
 
-setInterval(function() { Engine.update(engine, 1000 / 60); }, 1000 / 60);
-
 // some constants for the organism's bodies
-const brain = 0;
-const regular = 1;
-const eye = 2;
-const mouth = 3;
-const wall = 4;
+const BRAIN = 0;
+const REGULAR = 1;
+const EYE = 2;
+const MOUTH = 3;
+const WALL = 4;
 const numTypes = 5;
 
 // https://coderwall.com/p/flonoa/simple-string-format-in-javascript

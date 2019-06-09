@@ -43,16 +43,16 @@ class Population {
         inputs.push(0);
       }
       switch(typesOfParts[i]) {
-        case brain:
+        case BRAIN:
           inputs[inputs.length - 1] = 1;
           break;
-        case regular:
+        case REGULAR:
           inputs[inputs.length - 2] = 1;
           break;
-        case eye:
+        case EYE:
           inputs[inputs.length - 3] = 1;
           break;
-        case mouth:
+        case MOUTH:
           inputs[inputs.length - 4] = 1;
           break;
         default:
@@ -83,7 +83,7 @@ class Population {
 
       let coords = '0 0 {0} {1} {2} {3} '.format(xCoord1, yCoord1, xCoord2, yCoord2);
       // make the mouth a bit more pointy
-      if (typesOfParts[i] === mouth) {
+      if (typesOfParts[i] === MOUTH) {
         const xIntermediate = 45 * (xCoord1 / len1 + xCoord2 / len2) / 2;
         const yIntermediate = 45 * (yCoord1 / len1 + yCoord2 / len2) / 2;
         coords = '0 0 {0} {1} {2} {3} {4} {5} '.format(xCoord1, yCoord1, xIntermediate, yIntermediate, xCoord2, yCoord2);
@@ -94,17 +94,17 @@ class Population {
       if (!concave) {
         console.log(coords);
       }
-      if (typesOfParts[i] === mouth) {
-        concave.label = mouth;
+      if (typesOfParts[i] === MOUTH) {
+        concave.label = MOUTH;
         concave.render.fillStyle = '#0000FF';
-      } else if (typesOfParts[i] === brain) {
-        concave.label = brain;
+      } else if (typesOfParts[i] === BRAIN) {
+        concave.label = BRAIN;
         concave.render.fillStyle = '#C44D58';
-      } else if (typesOfParts[i] === eye) {
-        concave.label = eye;
+      } else if (typesOfParts[i] === EYE) {
+        concave.label = EYE;
         concave.render.fillStyle = '#CCCC00';
       } else {
-        concave.label = regular;
+        concave.label = REGULAR;
         concave.render.fillStyle = '#D3D3D3';
       }
       var centre = Vertices.centre(corner);
@@ -194,19 +194,17 @@ class Population {
   generatePop() {
     this.pop = {}
     let coords = this.getCoordinates();
-    let order = [brain, eye, mouth, eye];
+    let order = [BRAIN, EYE, MOUTH, EYE];
     const length = order.length;
     for (let i = 0; i < this.numAppendages - length; ++i) {
       if (i % 3 === 0) {
-        order.push(brain);
+        order.push(BRAIN);
       } else if (i % 3 === 1) {
-        order.push(mouth);
+        order.push(MOUTH);
       } else {
-        order.push(regular);
+        order.push(REGULAR);
       }
     }
-
-    
 
     for (let i = 0; i < this.popSize; ++i) {
       // for some reason the deep copy doesn't work very well... need to recreate
@@ -256,13 +254,13 @@ class Population {
     }
 
     const ground = Bodies.rectangle(400, 700, 1200, 20, { isStatic: true });
-    ground.label = wall;
+    ground.label = WALL;
     const ceiling = Bodies.rectangle(400, 0, 1200, 20, { isStatic: true });
-    ceiling.label = wall;
+    ceiling.label = WALL;
     const leftWall = Bodies.rectangle(0, 200, 20, 1000, { isStatic: true });
-    leftWall.label = wall;
+    leftWall.label = WALL;
     const rightWall = Bodies.rectangle(1000, 200, 20, 1000, { isStatic: true });
-    rightWall.label = wall;
+    rightWall.label = WALL;
 
     World.add(world, newBodies.concat([ground, ceiling, leftWall, rightWall]));
   }

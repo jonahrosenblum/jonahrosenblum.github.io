@@ -3,16 +3,16 @@
 class Organism {
 
   constructor(body, order, organismBrain, bodyGenerator) {
-    this.body = body;
+    this.eyeIndex1;
+    this.eyeIndex2;
+    this.mouthIndex;
+    this.brainMutationRate = .05;
+    this.bodyMutationRate = .05;
     this.fitness = 0;
-    this.eyeIndex1 = undefined;
-    this.eyeIndex2 = undefined;
-    this.mouthIndex = undefined;
     this.organismBrain = organismBrain;
     this.bodyGenerator = bodyGenerator;
     this.order = order;
-    this.brainMutationRate = .05;
-    this.bodyMutationRate = .05;
+    this.body = body;
 
     // these are values that will be given to the brain so it can understand its body
     for (let i = 0; i < this.body.parts.length; ++i) {
@@ -46,9 +46,10 @@ class Organism {
   getRaycast(eyeIndex) {
     // this list of bodies is useful for raycasting
     const bodies = Composite.allBodies(engine.world);
-    const xMultiplier = Math.cos(this.body.parts[eyeIndex].angle + this.body.angle);
-    const yMultiplier = Math.sin(this.body.parts[eyeIndex].angle + this.body.angle);
-    
+    const angle = (Math.PI * 2 / (this.body.parts.length - 1));
+    const xMultiplier = Math.cos(angle * eyeIndex + this.body.angle);
+    const yMultiplier = Math.sin(angle * eyeIndex + this.body.angle);
+
     // why such a large number? smaller numbers don't work for some reason.
     const array = raycast(bodies, this.body.parts[eyeIndex].position, 
         { x: xMultiplier * 1E5, 
@@ -62,7 +63,7 @@ class Organism {
   }
 
   getBrainInputs(bodies1, bodies2) {
-    if (!this.body || bodies1 === [] || bodies1.last() === undefined) return;
+    if (!this.body || bodies1 === [] || !bodies1.last()) return;
     let brainInputs = [];
     const eyeAngle1 = this.body.parts[this.eyeIndex1].angle - this.body.angle;
     const eyeToMouthAngle1 = this.body.parts[this.mouthIndex].angle - this.body.parts[this.eyeIndex1].angle
@@ -88,16 +89,15 @@ class Organism {
     brainInputs.push(Math.sin(eyeAngle2));
     brainInputs.push(Math.cos(eyeToMouthAngle2));
     brainInputs.push(Math.sin(eyeToMouthAngle2));
-    // 600 is totally arbitrary, seems to work well based on my limited testing
-    brainInputs.push(Math.sqrt(
+    // 950 is totally arbitrary, seems to work well based on my limited testing
+    brainInputs.push(1 - Math.sqrt(
         Math.pow(bodies1.last().point.x - this.body.position.x, 2) +
         Math.pow(bodies1.last().point.y - this.body.position.y, 2) 
-        ) / 600);
-    brainInputs.push(Math.sqrt(
+        ) / 950);
+    brainInputs.push(1 - Math.sqrt(
         Math.pow(bodies2.last().point.x - this.body.position.x, 2) +
         Math.pow(bodies2.last().point.y - this.body.position.y, 2) 
-        ) / 600);
-    
+        ) / 950);
     // add numTypes 0s to the end of the array
     for (let i = 0; i < numTypes; ++i) {
       brainInputs.push(0);

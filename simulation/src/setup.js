@@ -8,11 +8,10 @@ const Body = Matter.Body;
 const Bodies = Matter.Bodies;
 const Vertices = Matter.Vertices;
 const Pairs = Matter.Pairs;
-let engine = undefined;
-let world = undefined;
-let runner = undefined;
-let render = undefined;
-let myPop = undefined;
+
+// as far as I can tell, there is no way to have 'friend' classes in js
+// and so even though it's bad practice, this will have to be a global variable
+let engine = Engine.create();
 
 // some constants for the organism's bodies
 const BRAIN = 0;
@@ -25,11 +24,11 @@ const numTypes = 5;
 // https://coderwall.com/p/flonoa/simple-string-format-in-javascript
 // a useful function which helps format strings.
 String.prototype.format = function() {
-let a = this;
-for (k in arguments) {
-  a = a.replace("{" + k + "}", arguments[k])
-}
-return a
+  let a = this;
+  for (k in arguments) {
+    a = a.replace("{" + k + "}", arguments[k])
+  }
+  return a
 }
 
 // https://stackoverflow.com/questions/872310
@@ -70,15 +69,14 @@ function shuffle(array) {
 
   // While there remain elements to shuffle...
   while (0 !== currentIndex) {
+    // Pick a remaining element...
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
 
-  // Pick a remaining element...
-  randomIndex = Math.floor(Math.random() * currentIndex);
-  currentIndex -= 1;
-
-  // And swap it with the current element.
-  temporaryValue = array[currentIndex];
-  array[currentIndex] = array[randomIndex];
-  array[randomIndex] = temporaryValue;
+    // And swap it with the current element.
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
   }
 
   return array;
@@ -88,12 +86,3 @@ function shuffle(array) {
 function has(object, key) {
   return object ? hasOwnProperty.call(object, key) : false;
 }
-
-const state = {
-  'numAppendages': 8,
-  'popSize': 12,
-  'brainMutationRate': .05,
-  'bodyMutationRate': .05,
-  'reset': false,
-  'passOnMutation' : false
-};

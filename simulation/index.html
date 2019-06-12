@@ -40,13 +40,15 @@
         </div>
         <div class="col">
           Speed Up
-          <input type="button" id="speedUpButton"><br>
-          Slow Down
+          <input type="button" id="speedUpButton"> <br>
+          Reset Speed
           <input type="button" id="slowDownButton"><br>
+          <div id="currentSpeed">Current speed: 0</div>
         </div>
     </div>
     <br><br>
     <div id="gen">Generation 0</div>
+    <canvas id=".simulation" class="simulation"></canvas>
     <script src="third-party/matter.js" type="text/javascript"></script>
     <script src="third-party/decomp.min.js" type="text/javascript"></script>
     <script src="third-party/raycast_es6.js" type="text/javascript"></script>

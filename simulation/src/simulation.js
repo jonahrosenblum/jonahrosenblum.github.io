@@ -7,7 +7,7 @@ class Simulation {
     this.counter = 0;
     // variables that the user can change
     this.numAppendages = 8;
-    this.popSize = 12;
+    this.popSize = 14;
     this.brainMutationRate = .05;
     this.bodyMutationRate = .05;
     this.reset = false;

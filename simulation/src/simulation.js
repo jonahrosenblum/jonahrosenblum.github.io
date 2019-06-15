@@ -181,4 +181,4 @@ class Simulation {
 // run the simulation with the default values
 const simulation = new Simulation();
 simulation.configureButtons();
-simulation.runSimulation(8, 12, .05, .05, false);
+simulation.runSimulation(8, 14, .05, .05, false);

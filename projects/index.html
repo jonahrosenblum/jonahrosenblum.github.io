@@ -7,8 +7,6 @@
       content="width=device-width, initial-scale=1, shrink-to-fit=no"
     />
     <meta name="description" content="Personal website of Jonah Rosenblum. Information about resume, personal projects, work experience, skills, and more can be found here." />
-    
-    <meta name="author" content="Savvina Drougouti" />
 
     <title>Jonah Rosenblum</title>
     <link rel="icon" href="/favicon.ico" type="image/x-icon" />
@@ -43,13 +41,6 @@
   <body id="page-top">
     <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="sideNav">
       <a class="navbar-brand js-scroll-trigger pl-2" href="#page-top">
-        <span class="d-none d-lg-block">
-          <img
-            class="img-fluid img-profile mb-3"
-            src="static/headshot.jpg"
-            alt="Jonah Rosenblum"
-          />
-        </span>
       </a>
       <button
         class="navbar-toggler m-2"
@@ -67,6 +58,12 @@
         class="collapse navbar-collapse text-center"
         id="navbarSupportedContent"
       >
+
+      <ul class="navbar-nav d-block">
+        <li class="nav-item">
+          <a class="nav-link js-scroll-trigger" href="/">About</a>
+        </li>
+      </ul>
 
         <div>
           <ul
@@ -92,40 +89,80 @@
       </div>
     </nav>
 
-    <div class="container-fluid p-0">
-      <section class="resume-section p-3 p-lg-5" id="about">
-        <div class="my-auto">
-          <p class="mobile-name">
-            <!-- <img class="mobile-img" src="static/headshot.jp2" alt="Jonah Rosenblum" /> -->
-          </p>
-          <p class="mobile-name"> <span class="family-name">Jonah Rosenblum</span></p>
-          <h1 class="mb-3 mt-5">
-            
-            <span class="family-name">Jonah Rosenblum</span>
-          </h1>
-          <p class="mobile-profession">
-            University of Michigan - Computer Science
-          </p>
-          <h4 class="mb-4">
-            University of Michigan - Computer Science
-          </h4>
-          
-          <p class="mb-3"> 
-            I am from Maryland currently living in Ann Arbor Michigan. 
-            Working towards a Masters's degree in <a href="https://cse.engin.umich.edu/" target="_blank" rel="noopener noreferrer">CSE</a> with a focus in systems.
-            <br>
-            Please email me to get in contact.
-            </menu>
-          </p>
+    <section class="resume-section p-3 p-lg-5" id="projects">
+      <h2 class="mb-4">&lt; Projects &gt;</h2>
 
-          <p>
-            More information about my work experience and skills can be found on my resume.<br/><br/>
-            <a href="#" class="myButton" onclick="window.open('static/JonahRosenblumResume.pdf')">View Resume </a>
-          </p>
-          
-          
+      <!-- Projects Body -->
+<div class="w3-row-padding w3-center w3-margin-top">
+<div class="w3-card white">
+  <ul class="w3-ul w3-border-top">
+    <div class="project shadow-large">
+      <div class="row">
+        <div class="col">
+          <a href = "/simulation/" target="_blank">
+            <img src="static/coevolution-pic.png" style="max-width:100%;
+            max-height:100%;" alt="Jonah Rosenblum Coevolution Pic">
+          </a>
         </div>
-      </section>
+        <div class="col">
+            <h3>Mind and Body Co-Evolution</h3>
+            <p>With the powerful matter.js physics engine I created an evolution simulation that
+              has small organisms take in information from their surroundings, move around,
+              and reproduce based on how well they interact with their enviornment
+              and other organisms.<br />
+              <a href = "https://github.com/jonahrosenblum/coevolution" target="_blank">Github Repository</a> <br />
+              <a href="/simulation/" target="_blank">View Here</a>
+        </div>
+      </div>
+    </div>
+    <div class="project shadow-large">
+        <div class="row">
+          <div class="col">
+            <a href="https://github.com/jonahrosenblum/crockpi" target="_blankg">
+              <img src="static/wiring-diagram.png" style="max-width:100%;
+              max-height:100%;" alt="Jonah Rosenblum Wiring Diagram">
+            </a>
+          </div>
+          <div class="col">
+              <h3>Crockpi</h3>
+              <p>Have you ever wanted your crockpot to automatically turn to "keep warm" mode after a certain amount of time?
+                I did, so I wrote a C++ program that utilizes a power relay and a temperature sensor to stop your food
+                from cooking when it's done, while still keeping it warm.
+                <!-- <a href = "https://twitter.com/haikureviewlive" target="_blank">@haikureviewlive</a> -->
+                <br />
+                <a href = "https://github.com/jonahrosenblum/crockpi" target="_blank">Github Repository</a>
+              </a>
+              </p>
+          </div>
+        </div>
+      </div>
+    <div class="project shadow-large">
+        <div class="row">
+          <div class="col">
+            <a href="https://twitter.com/haikureviewlive" target="_blank">
+              <img src="static/haiku-pic.png" style="max-width:100%;
+              max-height:100%;" alt="Jonah Rosenblum Haiku">
+              </a>
+          </div>
+          <div class="col">
+              <h3>Haiku Review, Twitter Bot</h3>
+              <p>Using Python libraries like spaCy, nltk, pyphen, and tweepy, I made a twitter
+                bot that pulls article headlines from a news API and generates thousands 
+                of viable haikus based on the content. 
+                <!-- <a href = "https://twitter.com/haikureviewlive" target="_blank">@haikureviewlive</a> -->
+                <br />
+                <a href = "https://github.com/jonahrosenblum/Haiku-Review" target="_blank">Github Repository</a> <br />
+              <a href = "https://twitter.com/haikureviewlive" target="_blank">
+              View Examples
+              </a>
+              </p>
+          </div>
+        </div>
+      </div>
+  </ul>
+</div>
+</div>
+</div>
 
       <section class="resume-section p-3 p-lg-5" id="contact">
         <div class="my-auto">
